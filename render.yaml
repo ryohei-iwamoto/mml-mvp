@@ -2,6 +2,7 @@ services:
   - type: web
     name: mml-mvp
     runtime: python
+    pythonVersion: "3.11.11"
     buildCommand: pip install -r requirements.txt
     startCommand: gunicorn app:app --bind 0.0.0.0:$PORT
     plan: free
