@@ -28,6 +28,9 @@
       </header>
 
       <section class="card">
+        {% if api_error %}
+          <div class="error">OpenAI GPT API キーが設定されていません。環境変数 <code>OPENAI_API_KEY</code> を設定してください。</div>
+        {% endif %}
         {% if notice %}
           <div class="notice">{{ notice }}</div>
         {% endif %}

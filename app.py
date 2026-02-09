@@ -770,6 +770,7 @@ def model_vision():
         asked_ids.append(first_question["id"])
     if first_question and first_question.get("text"):
         asked_texts.append(first_question["text"])
+    api_error = not os.getenv("OPENAI_API_KEY")
     return render_template(
         "model_chat.html",
         run_id=run_id,
@@ -786,6 +787,7 @@ def model_vision():
         part_name=_get_form_str("part_name"),
         suggested_subcomponents_json=suggested_subcomponents_json,
         suggested_arm_config_json=suggested_arm_config_json,
+        api_error=api_error,
     )
 
 
@@ -1935,6 +1937,7 @@ def draw_load():
         asked_texts.append(first_question["text"])
 
     write_json(os.path.join(run_dir, "mml.json"), mml)
+    api_error = not os.getenv("OPENAI_API_KEY")
     return render_template(
         "draw_chat.html",
         run_id=run_id,
@@ -1944,6 +1947,7 @@ def draw_load():
         asked_ids_json=json.dumps(asked_ids, ensure_ascii=False),
         asked_texts_json=json.dumps(asked_texts, ensure_ascii=False),
         mml_preview=json.dumps(mml, indent=2),
+        api_error=api_error,
     )
 
 
