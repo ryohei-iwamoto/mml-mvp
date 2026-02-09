@@ -27,10 +27,12 @@
         <p>対話で寸法・材質・精度・加工方法などを決定します。</p>
       </header>
 
+      {% if api_error %}
       <section class="card">
-        {% if api_error %}
-          <div class="error">OpenAI GPT API キーが設定されていません。環境変数 <code>OPENAI_API_KEY</code> を設定してください。</div>
-        {% endif %}
+        <div class="error">OpenAI GPT API キーが設定されていません。環境変数 <code>OPENAI_API_KEY</code> を設定してください。</div>
+      </section>
+      {% else %}
+      <section class="card">
         {% if notice %}
           <div class="notice">{{ notice }}</div>
         {% endif %}
@@ -122,6 +124,7 @@
           <h2 class="section-title">MML プレビュー</h2>
           <pre class="code">{{ mml_preview }}</pre>
         </section>
+      {% endif %}
       {% endif %}
     </main>
 

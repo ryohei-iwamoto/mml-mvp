@@ -27,10 +27,12 @@
         <p>質問に回答して機械モデリング言語を確定します。</p>
       </header>
 
+      {% if api_error %}
       <section class="card">
-        {% if api_error %}
-          <div class="error">OpenAI GPT API キーが設定されていません。環境変数 <code>OPENAI_API_KEY</code> を設定してください。</div>
-        {% endif %}
+        <div class="error">OpenAI GPT API キーが設定されていません。環境変数 <code>OPENAI_API_KEY</code> を設定してください。</div>
+      </section>
+      {% else %}
+      <section class="card">
         <form class="form" action="/model/emit" method="post" id="chatForm">
           <input type="hidden" name="run_id" value="{{ run_id }}" />
           <input type="hidden" name="part_name" value="{{ part_name or '' }}" />
@@ -93,6 +95,7 @@
           {% endif %}
         </form>
       </section>
+      {% endif %}
     </main>
 
     <script>
