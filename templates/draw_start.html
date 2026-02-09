@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>図面の作成</title>
+    <link rel="stylesheet" href="/static/style.css?v=3" />
+  </head>
+  <body>
+    <nav class="topbar">
+      <span class="topbar-brand">MML</span>
+      <div class="topbar-nav">
+        <a class="topbar-link" href="/">Home</a>
+        <a class="topbar-link" href="/model">Model</a>
+        <a class="topbar-link active" href="/draw">Draw</a>
+      </div>
+    </nav>
+
+    <main class="page">
+      <header class="hero">
+        <h1>図面の作成</h1>
+        <p>MML-JSON を読み込み、不足情報を補って DXF を作成します。</p>
+      </header>
+
+      <section class="card">
+        {% if error %}
+          <div class="error">{{ error }}</div>
+        {% endif %}
+        <form class="form" action="/draw/load" method="post" enctype="multipart/form-data">
+          <label class="field">
+            <span>MML-JSON ファイル</span>
+            <input type="file" name="mml_file" accept=".json" />
+          </label>
+          <label class="field">
+            <span>または run id を使う</span>
+            <input type="text" name="run_id" value="{{ run_id or '' }}" placeholder="20240101_120000" />
+          </label>
+          <button class="btn" type="submit">読み込み</button>
+        </form>
+      </section>
+    </main>
+  </body>
+</html>

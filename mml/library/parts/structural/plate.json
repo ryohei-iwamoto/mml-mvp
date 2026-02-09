@@ -1,0 +1,80 @@
+{
+  "id": "plate",
+  "category": "structural",
+  "name": {
+    "en": "Mounting Plate",
+    "ja": "取付プレート"
+  },
+  "description": {
+    "en": "A flat plate with mounting holes",
+    "ja": "取付穴付きの平板"
+  },
+  "keywords": [
+    "plate", "panel", "base", "mount",
+    "プレート", "板", "パネル", "ベース"
+  ],
+  "ai_context": "部品の取付ベースや構造パネルとして使用。センサーマウント、カバー、スペーサーなどに適用。",
+  "parameters": {
+    "width_mm": {
+      "type": "float",
+      "default": 100.0,
+      "min": 20.0,
+      "max": 500.0,
+      "unit": "mm",
+      "description": {"ja": "幅"}
+    },
+    "height_mm": {
+      "type": "float",
+      "default": 60.0,
+      "min": 20.0,
+      "max": 500.0,
+      "unit": "mm",
+      "description": {"ja": "高さ"}
+    },
+    "thickness_mm": {
+      "type": "float",
+      "default": 3.0,
+      "min": 0.5,
+      "max": 20.0,
+      "unit": "mm",
+      "description": {"ja": "板厚"}
+    },
+    "corner_radius_mm": {
+      "type": "float",
+      "default": 3.0,
+      "min": 0,
+      "max": 30.0,
+      "unit": "mm",
+      "description": {"ja": "角R"}
+    },
+    "hole_pattern": {
+      "type": "string",
+      "default": "corners",
+      "enum_values": ["corners", "edges", "center", "none"],
+      "description": {"ja": "穴パターン"}
+    },
+    "hole_diameter_mm": {
+      "type": "float",
+      "default": 5.0,
+      "min": 2.0,
+      "max": 20.0,
+      "unit": "mm",
+      "description": {"ja": "穴径"}
+    },
+    "hole_margin_mm": {
+      "type": "float",
+      "default": 10.0,
+      "min": 5.0,
+      "max": 50.0,
+      "unit": "mm",
+      "description": {"ja": "穴の縁からの距離"}
+    }
+  },
+  "constraints": [],
+  "generator": {
+    "module": "mml.library.generators.structural_generators",
+    "function": "generate_plate"
+  },
+  "compatible_with": ["bolt", "nut", "spacer", "bracket"],
+  "assembly_hints": {}
+}

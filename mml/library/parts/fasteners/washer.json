@@ -1,0 +1,40 @@
+{
+  "id": "washer",
+  "category": "fasteners",
+  "name": {
+    "en": "Washer",
+    "ja": "ワッシャー"
+  },
+  "description": {
+    "en": "A flat or spring washer",
+    "ja": "平ワッシャーまたはスプリングワッシャー"
+  },
+  "keywords": [
+    "washer", "flat washer", "spring washer", "lock washer",
+    "ワッシャー", "平ワッシャー", "スプリングワッシャー", "座金"
+  ],
+  "ai_context": "ボルト締結時の座面保護、緩み止めに使用。平ワッシャーは荷重分散、スプリングワッシャーは緩み止め効果。",
+  "parameters": {
+    "size": {
+      "type": "string",
+      "default": "M5",
+      "enum_values": ["M3", "M4", "M5", "M6", "M8", "M10", "M12"],
+      "description": {"ja": "サイズ（対応ボルトサイズ）"}
+    },
+    "washer_type": {
+      "type": "string",
+      "default": "flat",
+      "enum_values": ["flat", "spring", "lock"],
+      "description": {"ja": "ワッシャー種類"}
+    }
+  },
+  "constraints": [],
+  "generator": {
+    "module": "mml.library.generators.fastener_generators",
+    "function": "generate_washer"
+  },
+  "compatible_with": ["bolt", "nut"],
+  "assembly_hints": {
+    "axis": "z"
+  }
+}

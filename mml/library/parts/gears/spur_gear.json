@@ -1,0 +1,117 @@
+{
+  "id": "spur_gear",
+  "category": "gears",
+  "name": {
+    "en": "Spur Gear",
+    "ja": "平歯車"
+  },
+  "description": {
+    "en": "A cylindrical gear with straight teeth parallel to the axis",
+    "ja": "軸に平行な直歯を持つ円筒形歯車"
+  },
+  "keywords": [
+    "gear", "spur", "tooth", "teeth", "cog", "pinion",
+    "歯車", "平歯車", "ギア", "ピニオン", "直歯"
+  ],
+  "ai_context": "平行軸間の回転動力伝達に使用。単純な歯車列、減速機、増速機に最適。騒音が比較的大きいため、高速・静音要求がある場合ははすば歯車を検討。",
+  "parameters": {
+    "module": {
+      "type": "float",
+      "default": 1.0,
+      "min": 0.5,
+      "max": 10.0,
+      "unit": "mm",
+      "description": {
+        "en": "Gear module (tooth size)",
+        "ja": "モジュール（歯の大きさ）"
+      },
+      "ai_inference": true
+    },
+    "teeth_count": {
+      "type": "int",
+      "default": 24,
+      "min": 8,
+      "max": 200,
+      "description": {
+        "en": "Number of teeth",
+        "ja": "歯数"
+      },
+      "ai_inference": true
+    },
+    "pressure_angle_deg": {
+      "type": "float",
+      "default": 20.0,
+      "enum_values": [14.5, 20.0, 25.0],
+      "unit": "deg",
+      "description": {
+        "en": "Pressure angle",
+        "ja": "圧力角"
+      }
+    },
+    "face_width_mm": {
+      "type": "float",
+      "default": 10.0,
+      "min": 2.0,
+      "max": 100.0,
+      "unit": "mm",
+      "description": {
+        "en": "Face width (thickness)",
+        "ja": "歯幅"
+      },
+      "ai_inference": true
+    },
+    "bore_diameter_mm": {
+      "type": "float",
+      "default": 8.0,
+      "min": 0,
+      "max": 100.0,
+      "unit": "mm",
+      "description": {
+        "en": "Bore (shaft hole) diameter",
+        "ja": "軸穴径"
+      },
+      "ai_inference": true
+    },
+    "hub_diameter_mm": {
+      "type": "float",
+      "default": 0,
+      "min": 0,
+      "unit": "mm",
+      "description": {
+        "en": "Hub diameter (0 = no hub)",
+        "ja": "ボス径（0でボス無し）"
+      }
+    },
+    "hub_length_mm": {
+      "type": "float",
+      "default": 0,
+      "min": 0,
+      "unit": "mm",
+      "description": {
+        "en": "Hub length",
+        "ja": "ボス長さ"
+      }
+    }
+  },
+  "constraints": [
+    {
+      "kind": "expression",
+      "expression": "teeth_count >= 8",
+      "message": "歯数は8以上必要です"
+    },
+    {
+      "kind": "expression",
+      "expression": "bore_diameter_mm < (module * teeth_count * 0.4)",
+      "message": "軸穴径が歯車サイズに対して大きすぎます"
+    }
+  ],
+  "generator": {
+    "module": "mml.library.generators.gear_generators",
+    "function": "generate_spur_gear"
+  },
+  "compatible_with": ["spur_gear", "shaft", "bearing", "motor", "coupling"],
+  "assembly_hints": {
+    "axis": "z",
+    "origin": "center_bore"
+  }
+}

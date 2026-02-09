@@ -1,0 +1,65 @@
+{
+  "id": "coupling",
+  "category": "drive",
+  "name": {
+    "en": "Shaft Coupling",
+    "ja": "カップリング"
+  },
+  "description": {
+    "en": "A coupling for connecting two shafts",
+    "ja": "2本のシャフトを接続するカップリング"
+  },
+  "keywords": [
+    "coupling", "coupler", "joint", "connector",
+    "カップリング", "軸継手", "ジョイント", "連結器"
+  ],
+  "ai_context": "2本の回転軸を接続するために使用。軸のミスアライメント吸収、振動緩和、着脱容易性などの機能あり。",
+  "parameters": {
+    "outer_diameter_mm": {
+      "type": "float",
+      "default": 25.0,
+      "min": 15.0,
+      "max": 80.0,
+      "unit": "mm",
+      "description": {"ja": "外径"}
+    },
+    "bore_diameter_mm": {
+      "type": "float",
+      "default": 8.0,
+      "min": 3.0,
+      "max": 30.0,
+      "unit": "mm",
+      "description": {"ja": "軸穴径"}
+    },
+    "length_mm": {
+      "type": "float",
+      "default": 30.0,
+      "min": 15.0,
+      "max": 100.0,
+      "unit": "mm",
+      "description": {"ja": "全長"}
+    },
+    "coupling_type": {
+      "type": "string",
+      "default": "rigid",
+      "enum_values": ["rigid", "jaw", "spider", "flexible"],
+      "description": {"ja": "タイプ"}
+    },
+    "jaw_count": {
+      "type": "int",
+      "default": 3,
+      "min": 2,
+      "max": 6,
+      "description": {"ja": "ジョー数（jawタイプのみ）"}
+    }
+  },
+  "constraints": [],
+  "generator": {
+    "module": "mml.library.generators.drive_generators",
+    "function": "generate_coupling"
+  },
+  "compatible_with": ["shaft", "motor"],
+  "assembly_hints": {
+    "axis": "z"
+  }
+}

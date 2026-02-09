@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>図面の結果</title>
+    <link rel="stylesheet" href="/static/style.css?v=3" />
+  </head>
+  <body>
+    <nav class="topbar">
+      <span class="topbar-brand">MML</span>
+      <div class="topbar-nav">
+        <a class="topbar-link" href="/">Home</a>
+        <a class="topbar-link" href="/model">Model</a>
+        <a class="topbar-link active" href="/draw">Draw</a>
+      </div>
+    </nav>
+
+    <main class="page page-wide">
+      <header class="hero">
+        <h1>図面の作成完了</h1>
+        <p>DXF と更新済みの MML をダウンロードできます。</p>
+      </header>
+
+      <section class="card">
+        {% if outputs_multi %}
+          {% if assembly_stl %}
+            <div class="outputs">
+              <a class="btn" href="/outputs/{{ run_id }}/{{ assembly_stl }}">assembly.stl</a>
+            </div>
+          {% endif %}
+          {% for item in outputs_multi %}
+            <h2 class="section-title">{{ item.name }}</h2>
+            <div class="outputs">
+              <a class="btn" href="/outputs/{{ run_id }}/{{ item.files.mml }}">mml.json</a>
+              <a class="btn" href="/outputs/{{ run_id }}/{{ item.files.dxf }}">drawing.dxf</a>
+              <a class="btn" href="/outputs/{{ run_id }}/{{ item.files.png }}">drawing.png</a>
+              <a class="btn" href="/outputs/{{ run_id }}/{{ item.files.stl }}">model.stl</a>
+              <a class="btn" href="/outputs/{{ run_id }}/{{ item.files.drawing_report }}">drawing_report.json</a>
+            </div>
+            <div class="preview">
+              <img src="/outputs/{{ run_id }}/{{ item.files.png }}" alt="drawing preview" />
+            </div>
+          {% endfor %}
+        {% elif outputs %}
+          <div class="outputs">
+            <a class="btn" href="/outputs/{{ run_id }}/{{ outputs.mml }}">mml.json</a>
+            <a class="btn" href="/outputs/{{ run_id }}/{{ outputs.dxf }}">drawing.dxf</a>
+            <a class="btn" href="/outputs/{{ run_id }}/{{ outputs.png }}">drawing.png</a>
+            <a class="btn" href="/outputs/{{ run_id }}/{{ outputs.stl }}">model.stl</a>
+            <a class="btn" href="/outputs/{{ run_id }}/{{ outputs.drawing_report }}">drawing_report.json</a>
+          </div>
+          <div class="preview">
+            <img src="/outputs/{{ run_id }}/{{ outputs.png }}" alt="drawing preview" />
+          </div>
+        {% else %}
+          <p>図面を生成できる形状がありませんでした。</p>
+        {% endif %}
+        <a class="link" href="/">ホームへ戻る &rarr;</a>
+      </section>
+    </main>
+  </body>
+</html>

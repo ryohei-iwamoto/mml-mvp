@@ -1,0 +1,73 @@
+{
+  "id": "shaft",
+  "category": "drive",
+  "name": {
+    "en": "Shaft",
+    "ja": "シャフト"
+  },
+  "description": {
+    "en": "A cylindrical shaft for power transmission",
+    "ja": "動力伝達用の円筒形シャフト"
+  },
+  "keywords": [
+    "shaft", "axle", "spindle", "rod",
+    "シャフト", "軸", "スピンドル", "ロッド"
+  ],
+  "ai_context": "回転動力伝達の軸として使用。歯車、プーリー、カップリングなどを取り付ける。キー溝付きも可能。",
+  "parameters": {
+    "diameter_mm": {
+      "type": "float",
+      "default": 8.0,
+      "min": 3.0,
+      "max": 50.0,
+      "unit": "mm",
+      "description": {"ja": "直径"}
+    },
+    "length_mm": {
+      "type": "float",
+      "default": 100.0,
+      "min": 20.0,
+      "max": 500.0,
+      "unit": "mm",
+      "description": {"ja": "長さ"}
+    },
+    "keyway": {
+      "type": "bool",
+      "default": false,
+      "description": {"ja": "キー溝の有無"}
+    },
+    "keyway_width_mm": {
+      "type": "float",
+      "default": 3.0,
+      "min": 1.0,
+      "max": 10.0,
+      "unit": "mm",
+      "description": {"ja": "キー溝幅"}
+    },
+    "keyway_depth_mm": {
+      "type": "float",
+      "default": 1.5,
+      "min": 0.5,
+      "max": 5.0,
+      "unit": "mm",
+      "description": {"ja": "キー溝深さ"}
+    },
+    "keyway_length_mm": {
+      "type": "float",
+      "default": 20.0,
+      "min": 5.0,
+      "max": 100.0,
+      "unit": "mm",
+      "description": {"ja": "キー溝長さ"}
+    }
+  },
+  "constraints": [],
+  "generator": {
+    "module": "mml.library.generators.drive_generators",
+    "function": "generate_shaft"
+  },
+  "compatible_with": ["bearing", "spur_gear", "coupling", "motor"],
+  "assembly_hints": {
+    "axis": "z"
+  }
+}

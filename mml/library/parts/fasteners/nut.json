@@ -1,0 +1,45 @@
+{
+  "id": "nut",
+  "category": "fasteners",
+  "name": {
+    "en": "Nut",
+    "ja": "ナット"
+  },
+  "description": {
+    "en": "A threaded nut for fastening",
+    "ja": "締結用のねじナット"
+  },
+  "keywords": [
+    "nut", "hex nut", "fastener",
+    "ナット", "六角ナット", "締結"
+  ],
+  "ai_context": "ボルトと組み合わせて締結に使用。六角ナット、フランジナット、ナイロックナットなど各種あり。",
+  "parameters": {
+    "size": {
+      "type": "string",
+      "default": "M5",
+      "enum_values": ["M3", "M4", "M5", "M6", "M8", "M10", "M12"],
+      "description": {"ja": "サイズ（メートルねじ）"}
+    },
+    "nut_type": {
+      "type": "string",
+      "default": "hex",
+      "enum_values": ["hex", "square", "flange"],
+      "description": {"ja": "ナット形状"}
+    },
+    "nyloc": {
+      "type": "bool",
+      "default": false,
+      "description": {"ja": "ナイロックナット"}
+    }
+  },
+  "constraints": [],
+  "generator": {
+    "module": "mml.library.generators.fastener_generators",
+    "function": "generate_nut"
+  },
+  "compatible_with": ["bolt", "washer"],
+  "assembly_hints": {
+    "axis": "z"
+  }
+}

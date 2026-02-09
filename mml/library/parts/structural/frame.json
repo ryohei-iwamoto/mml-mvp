@@ -1,0 +1,79 @@
+{
+  "id": "frame",
+  "category": "structural",
+  "name": {
+    "en": "Rectangular Frame",
+    "ja": "矩形フレーム"
+  },
+  "description": {
+    "en": "A rectangular frame with hollow center",
+    "ja": "中空の矩形フレーム"
+  },
+  "keywords": [
+    "frame", "rectangle", "border", "outline",
+    "フレーム", "枠", "外枠", "ボーダー"
+  ],
+  "ai_context": "パネルの縁取りや軽量化構造として使用。窓枠、カバーフレーム、補強リングなどに適用。",
+  "parameters": {
+    "outer_width_mm": {
+      "type": "float",
+      "default": 120.0,
+      "min": 30.0,
+      "max": 500.0,
+      "unit": "mm",
+      "description": {"ja": "外幅"}
+    },
+    "outer_height_mm": {
+      "type": "float",
+      "default": 80.0,
+      "min": 30.0,
+      "max": 500.0,
+      "unit": "mm",
+      "description": {"ja": "外高さ"}
+    },
+    "wall_thickness_mm": {
+      "type": "float",
+      "default": 10.0,
+      "min": 3.0,
+      "max": 50.0,
+      "unit": "mm",
+      "description": {"ja": "壁厚"}
+    },
+    "depth_mm": {
+      "type": "float",
+      "default": 5.0,
+      "min": 1.0,
+      "max": 50.0,
+      "unit": "mm",
+      "description": {"ja": "奥行き（板厚）"}
+    },
+    "corner_radius_mm": {
+      "type": "float",
+      "default": 5.0,
+      "min": 0,
+      "max": 30.0,
+      "unit": "mm",
+      "description": {"ja": "角R"}
+    },
+    "mounting_holes": {
+      "type": "bool",
+      "default": true,
+      "description": {"ja": "取付穴の有無"}
+    },
+    "hole_diameter_mm": {
+      "type": "float",
+      "default": 5.0,
+      "min": 2.0,
+      "max": 15.0,
+      "unit": "mm",
+      "description": {"ja": "穴径"}
+    }
+  },
+  "constraints": [],
+  "generator": {
+    "module": "mml.library.generators.structural_generators",
+    "function": "generate_frame"
+  },
+  "compatible_with": ["bolt", "nut", "plate"],
+  "assembly_hints": {}
+}

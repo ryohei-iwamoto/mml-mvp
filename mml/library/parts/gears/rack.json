@@ -1,0 +1,111 @@
+{
+  "id": "rack",
+  "category": "gears",
+  "name": {
+    "en": "Gear Rack",
+    "ja": "ラック"
+  },
+  "description": {
+    "en": "A linear gear that meshes with a pinion for linear motion",
+    "ja": "ピニオンと噛み合い直線運動を行う直線歯車"
+  },
+  "keywords": [
+    "gear", "rack", "linear", "pinion", "rail",
+    "ラック", "ラックギア", "直線歯車", "ラック＆ピニオン"
+  ],
+  "ai_context": "回転運動を直線運動に変換するラック＆ピニオン機構に使用。CNCテーブル、ドア開閉機構、ステアリングなどに適用。",
+  "parameters": {
+    "module": {
+      "type": "float",
+      "default": 1.5,
+      "min": 0.5,
+      "max": 10.0,
+      "unit": "mm",
+      "description": {
+        "en": "Module (must match pinion)",
+        "ja": "モジュール（ピニオンと一致させる）"
+      },
+      "ai_inference": true
+    },
+    "teeth_count": {
+      "type": "int",
+      "default": 20,
+      "min": 5,
+      "max": 200,
+      "description": {
+        "en": "Number of teeth",
+        "ja": "歯数"
+      },
+      "ai_inference": true
+    },
+    "pressure_angle_deg": {
+      "type": "float",
+      "default": 20.0,
+      "enum_values": [14.5, 20.0, 25.0],
+      "unit": "deg",
+      "description": {
+        "en": "Pressure angle",
+        "ja": "圧力角"
+      }
+    },
+    "face_width_mm": {
+      "type": "float",
+      "default": 15.0,
+      "min": 5.0,
+      "max": 100.0,
+      "unit": "mm",
+      "description": {
+        "en": "Face width",
+        "ja": "歯幅"
+      },
+      "ai_inference": true
+    },
+    "height_mm": {
+      "type": "float",
+      "default": 20.0,
+      "min": 5.0,
+      "max": 100.0,
+      "unit": "mm",
+      "description": {
+        "en": "Total height",
+        "ja": "全高さ"
+      }
+    },
+    "mounting_holes": {
+      "type": "bool",
+      "default": true,
+      "description": {
+        "en": "Include mounting holes",
+        "ja": "取り付け穴を含める"
+      }
+    },
+    "hole_diameter_mm": {
+      "type": "float",
+      "default": 5.0,
+      "min": 2.0,
+      "max": 20.0,
+      "unit": "mm",
+      "description": {
+        "en": "Mounting hole diameter",
+        "ja": "取り付け穴径"
+      }
+    }
+  },
+  "constraints": [
+    {
+      "kind": "expression",
+      "expression": "teeth_count >= 5",
+      "message": "歯数は5以上必要です"
+    }
+  ],
+  "generator": {
+    "module": "mml.library.generators.gear_generators",
+    "function": "generate_rack"
+  },
+  "compatible_with": ["spur_gear", "helical_gear"],
+  "assembly_hints": {
+    "axis": "x",
+    "origin": "end",
+    "notes": "ピニオンと同じモジュール・圧力角が必要"
+  }
+}

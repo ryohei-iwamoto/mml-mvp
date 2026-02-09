@@ -1,0 +1,100 @@
+{
+  "id": "motor",
+  "category": "drive",
+  "name": {
+    "en": "Motor",
+    "ja": "モーター"
+  },
+  "description": {
+    "en": "A NEMA-style stepper or DC motor",
+    "ja": "NEMA規格ステッピングモーターまたはDCモーター"
+  },
+  "keywords": [
+    "motor", "stepper", "servo", "actuator", "NEMA",
+    "モーター", "ステッピングモーター", "サーボ", "アクチュエーター"
+  ],
+  "ai_context": "回転動力源として使用。歯車列、ベルト駆動、直接駆動などの原動機。NEMA17/23/34などの規格サイズあり。",
+  "parameters": {
+    "body_diameter_mm": {
+      "type": "float",
+      "default": 42.0,
+      "min": 20.0,
+      "max": 100.0,
+      "unit": "mm",
+      "description": {"ja": "ボディ径"}
+    },
+    "body_length_mm": {
+      "type": "float",
+      "default": 40.0,
+      "min": 20.0,
+      "max": 100.0,
+      "unit": "mm",
+      "description": {"ja": "ボディ長さ"}
+    },
+    "shaft_diameter_mm": {
+      "type": "float",
+      "default": 5.0,
+      "min": 3.0,
+      "max": 15.0,
+      "unit": "mm",
+      "description": {"ja": "シャフト径"}
+    },
+    "shaft_length_mm": {
+      "type": "float",
+      "default": 20.0,
+      "min": 10.0,
+      "max": 50.0,
+      "unit": "mm",
+      "description": {"ja": "シャフト長さ"}
+    },
+    "flange_diameter_mm": {
+      "type": "float",
+      "default": 50.0,
+      "min": 30.0,
+      "max": 120.0,
+      "unit": "mm",
+      "description": {"ja": "フランジ径"}
+    },
+    "flange_thickness_mm": {
+      "type": "float",
+      "default": 3.0,
+      "min": 2.0,
+      "max": 10.0,
+      "unit": "mm",
+      "description": {"ja": "フランジ厚"}
+    },
+    "mounting_hole_diameter_mm": {
+      "type": "float",
+      "default": 3.0,
+      "min": 2.0,
+      "max": 8.0,
+      "unit": "mm",
+      "description": {"ja": "取付穴径"}
+    },
+    "mounting_hole_pcd_mm": {
+      "type": "float",
+      "default": 31.0,
+      "min": 20.0,
+      "max": 80.0,
+      "unit": "mm",
+      "description": {"ja": "取付穴PCD"}
+    },
+    "mounting_holes_count": {
+      "type": "int",
+      "default": 4,
+      "min": 2,
+      "max": 8,
+      "description": {"ja": "取付穴数"}
+    }
+  },
+  "constraints": [],
+  "generator": {
+    "module": "mml.library.generators.drive_generators",
+    "function": "generate_motor"
+  },
+  "compatible_with": ["bracket", "coupling", "spur_gear", "shaft"],
+  "assembly_hints": {
+    "axis": "z",
+    "output": "shaft"
+  }
+}

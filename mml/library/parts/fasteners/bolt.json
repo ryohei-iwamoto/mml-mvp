@@ -1,0 +1,57 @@
+{
+  "id": "bolt",
+  "category": "fasteners",
+  "name": {
+    "en": "Bolt",
+    "ja": "ボルト"
+  },
+  "description": {
+    "en": "A threaded fastener with head",
+    "ja": "頭付きねじ締結部品"
+  },
+  "keywords": [
+    "bolt", "screw", "fastener", "hex",
+    "ボルト", "ねじ", "締結", "六角"
+  ],
+  "ai_context": "部品の締結に使用。六角ボルト、キャップボルト、なべねじなど各種あり。ナットと組み合わせて使用することが多い。",
+  "parameters": {
+    "size": {
+      "type": "string",
+      "default": "M5",
+      "enum_values": ["M3", "M4", "M5", "M6", "M8", "M10", "M12"],
+      "description": {"ja": "サイズ（メートルねじ）"}
+    },
+    "length_mm": {
+      "type": "float",
+      "default": 20.0,
+      "min": 5.0,
+      "max": 150.0,
+      "unit": "mm",
+      "description": {"ja": "長さ（頭を除く）"}
+    },
+    "head_type": {
+      "type": "string",
+      "default": "hex",
+      "enum_values": ["hex", "socket", "pan"],
+      "description": {"ja": "頭部形状"}
+    },
+    "thread_length_mm": {
+      "type": "float",
+      "default": 0,
+      "min": 0,
+      "max": 150.0,
+      "unit": "mm",
+      "description": {"ja": "ねじ部長さ（0=全ねじ）"}
+    }
+  },
+  "constraints": [],
+  "generator": {
+    "module": "mml.library.generators.fastener_generators",
+    "function": "generate_bolt"
+  },
+  "compatible_with": ["nut", "washer", "bracket", "plate"],
+  "assembly_hints": {
+    "axis": "z",
+    "direction": "down"
+  }
+}

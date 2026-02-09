@@ -1,0 +1,58 @@
+{
+  "id": "spacer",
+  "category": "fasteners",
+  "name": {
+    "en": "Spacer",
+    "ja": "スペーサー"
+  },
+  "description": {
+    "en": "A cylindrical spacer for maintaining distance",
+    "ja": "距離を保つための円筒形スペーサー"
+  },
+  "keywords": [
+    "spacer", "standoff", "sleeve", "bushing",
+    "スペーサー", "スタンドオフ", "スリーブ", "ブッシング"
+  ],
+  "ai_context": "部品間の距離を保つために使用。PCB取付、パネル間隔、シャフト位置決めなどに適用。",
+  "parameters": {
+    "outer_diameter_mm": {
+      "type": "float",
+      "default": 10.0,
+      "min": 4.0,
+      "max": 30.0,
+      "unit": "mm",
+      "description": {"ja": "外径"}
+    },
+    "inner_diameter_mm": {
+      "type": "float",
+      "default": 5.0,
+      "min": 2.0,
+      "max": 20.0,
+      "unit": "mm",
+      "description": {"ja": "内径（穴径）"}
+    },
+    "length_mm": {
+      "type": "float",
+      "default": 5.0,
+      "min": 1.0,
+      "max": 50.0,
+      "unit": "mm",
+      "description": {"ja": "長さ"}
+    }
+  },
+  "constraints": [
+    {
+      "kind": "expression",
+      "expression": "inner_diameter_mm < outer_diameter_mm",
+      "message": "内径は外径より小さくする必要があります"
+    }
+  ],
+  "generator": {
+    "module": "mml.library.generators.fastener_generators",
+    "function": "generate_spacer"
+  },
+  "compatible_with": ["bolt", "shaft"],
+  "assembly_hints": {
+    "axis": "z"
+  }
+}

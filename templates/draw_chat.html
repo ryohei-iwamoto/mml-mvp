@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>具体設計のチャット</title>
+    <link rel="stylesheet" href="/static/style.css?v=3" />
+  </head>
+  <body>
+    <nav class="topbar">
+      <span class="topbar-brand">MML</span>
+      <div class="topbar-nav">
+        <a class="topbar-link" href="/">Home</a>
+        <a class="topbar-link" href="/model">Model</a>
+        <a class="topbar-link active" href="/draw">Draw</a>
+      </div>
+    </nav>
+
+    <div class="loading-overlay" id="loadingOverlay">
+      <div class="loading-spinner"></div>
+      <div class="loading-text">図面を生成しています...</div>
+    </div>
+
+    <main class="page-chat">
+      <header class="hero">
+        <h1>具体設計の確認</h1>
+        <p>対話で寸法・材質・精度・加工方法などを決定します。</p>
+      </header>
+
+      <section class="card">
+        {% if notice %}
+          <div class="notice">{{ notice }}</div>
+        {% endif %}
+        {% if current_question %}
+          {% set q = current_question %}
+          <form class="form" action="/draw/chat" method="post" id="chatForm">
+            <input type="hidden" name="run_id" value="{{ run_id }}" />
+            <input type="hidden" name="draw_answers_json" value="{{ draw_answers_json }}" />
+            <input type="hidden" name="asked_ids_json" value="{{ asked_ids_json }}" />
+            <input type="hidden" name="asked_texts_json" value="{{ asked_texts_json }}" />
+            <input type="hidden" name="chat_history_json" value="{{ chat_history | tojson if chat_history else '[]' }}" />
+            <input type="hidden" name="current_id" value="{{ q.id }}" />
+            <input type="hidden" name="current_type" value="{{ q.type }}" />
+            <input type="hidden" name="current_text" value="{{ q.text }}" />
+            <div class="chat" id="chatMessages">
+              {% if chat_history %}
+                {% for item in chat_history %}
+                  <div class="message {{ 'user' if item.role == 'user' else 'bot' }}">
+                    <div class="bubble">{{ item.text }}</div>
+                  </div>
+                {% endfor %}
+              {% endif %}
+              <div class="message bot">
+                <div class="bubble">{{ q.text }}</div>
+              </div>
+            </div>
+            <div class="chat-input-bar">
+              {% if q.type == "float" %}
+                <input type="number" name="user_input" step="0.1" placeholder="回答を入力（数値）" />
+              {% elif q.type == "int" %}
+                <input type="number" name="user_input" step="1" placeholder="回答を入力（整数）" />
+              {% elif q.type == "text" %}
+                <textarea name="user_input" rows="1" placeholder="回答を入力"></textarea>
+              {% else %}
+                <input type="text" name="user_input" placeholder="回答を入力" />
+              {% endif %}
+              <button class="btn" type="submit" name="chat_action" value="answer">送信</button>
+            </div>
+            <div class="chat-actions">
+              <button class="btn secondary" type="submit" name="chat_action" value="question" data-loading="true" data-loading-text="AIが考えています...">質問として送る</button>
+              <button class="btn secondary" type="submit" name="chat_action" value="finish" data-loading="true">具体設計を完了</button>
+            </div>
+          </form>
+        {% elif ready_to_generate %}
+          <div class="chat" id="chatMessages">
+            {% if chat_history %}
+              {% for item in chat_history %}
+                <div class="message {{ 'user' if item.role == 'user' else 'bot' }}">
+                  <div class="bubble">{{ item.text }}</div>
+                </div>
+              {% endfor %}
+            {% endif %}
+            <div class="message bot">
+              <div class="bubble">具体設計の確認が完了しました。図面を生成できます。</div>
+            </div>
+          </div>
+          <form class="form" action="/draw/generate" method="post" id="chatForm">
+            <input type="hidden" name="run_id" value="{{ run_id }}" />
+            <input type="hidden" name="draw_answers_json" value="{{ draw_answers_json }}" />
+            <div class="chat-actions">
+              <button class="btn accent" type="submit" data-loading="true">図面を生成</button>
+            </div>
+          </form>
+        {% else %}
+          <div class="chat" id="chatMessages">
+            {% if chat_history %}
+              {% for item in chat_history %}
+                <div class="message {{ 'user' if item.role == 'user' else 'bot' }}">
+                  <div class="bubble">{{ item.text }}</div>
+                </div>
+              {% endfor %}
+            {% endif %}
+            <div class="message bot">
+              <div class="bubble">質問はありません。図面を生成できます。</div>
+            </div>
+          </div>
+          <form class="form" action="/draw/generate" method="post" id="chatForm">
+            <input type="hidden" name="run_id" value="{{ run_id }}" />
+            <input type="hidden" name="draw_answers_json" value="{{ draw_answers_json }}" />
+            <div class="chat-actions">
+              <button class="btn accent" type="submit" data-loading="true">図面を生成</button>
+            </div>
+          </form>
+        {% endif %}
+      </section>
+
+      {% if mml_preview %}
+        <section class="card">
+          <h2 class="section-title">MML プレビュー</h2>
+          <pre class="code">{{ mml_preview }}</pre>
+        </section>
+      {% endif %}
+    </main>
+
+    <script>
+      // Auto-scroll chat to bottom (delayed to ensure layout is complete)
+      var chat = document.getElementById('chatMessages');
+      function scrollToBottom() {
+        if (chat) {
+          chat.scrollTop = chat.scrollHeight;
+        }
+      }
+      scrollToBottom();
+      requestAnimationFrame(scrollToBottom);
+
+      // Show user message in chat on submit + loading overlay
+      var form = document.getElementById('chatForm');
+      if (form) {
+        form.addEventListener('submit', function(e) {
+          var btn = e.submitter;
+          var input = this.querySelector('[name="user_input"]');
+          // Append user bubble for any submit with input
+          if (input && input.value.trim()) {
+            var msg = document.createElement('div');
+            msg.className = 'message user';
+            msg.innerHTML = '<div class="bubble">' + input.value.replace(/</g, '&lt;') + '</div>';
+            chat.appendChild(msg);
+            scrollToBottom();
+          }
+          // Loading overlay
+          if (btn && btn.dataset.loading === 'true') {
+            var overlay = document.getElementById('loadingOverlay');
+            if (btn.dataset.loadingText) {
+              overlay.querySelector('.loading-text').textContent = btn.dataset.loadingText;
+            }
+            overlay.classList.add('active');
+          }
+        });
+      }
+    </script>
+  </body>
+</html>

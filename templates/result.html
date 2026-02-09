@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>機械モデリング言語 MVP 結果</title>
+    <link rel="stylesheet" href="/static/style.css?v=3" />
+  </head>
+  <body>
+    <nav class="topbar">
+      <span class="topbar-brand">MML</span>
+      <div class="topbar-nav">
+        <a class="topbar-link" href="/">Home</a>
+        <a class="topbar-link" href="/model">Model</a>
+        <a class="topbar-link" href="/draw">Draw</a>
+      </div>
+    </nav>
+
+    <main class="page">
+      <header class="hero">
+        <h1>パイプライン完了</h1>
+        <p>生成物をダウンロードできます。</p>
+      </header>
+
+      <section class="card">
+        <div class="outputs">
+          <a class="btn" href="/outputs/{{ run_id }}/{{ outputs.input }}">入力画像</a>
+          <a class="btn" href="/outputs/{{ run_id }}/{{ outputs.vision }}">vision.json</a>
+          <a class="btn" href="/outputs/{{ run_id }}/{{ outputs.mml }}">mml.json</a>
+          <a class="btn" href="/outputs/{{ run_id }}/{{ outputs.report }}">report.json</a>
+          <a class="btn" href="/outputs/{{ run_id }}/{{ outputs.dxf }}">drawing.dxf</a>
+          <a class="btn" href="/outputs/{{ run_id }}/{{ outputs.png }}">drawing.png</a>
+          <a class="btn" href="/outputs/{{ run_id }}/{{ outputs.stl }}">model.stl</a>
+        </div>
+        <a class="link" href="/">トップへ戻る &rarr;</a>
+      </section>
+    </main>
+  </body>
+</html>

@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>機械モデリング言語のチャット</title>
+    <link rel="stylesheet" href="/static/style.css?v=3" />
+  </head>
+  <body>
+    <nav class="topbar">
+      <span class="topbar-brand">MML</span>
+      <div class="topbar-nav">
+        <a class="topbar-link" href="/">Home</a>
+        <a class="topbar-link active" href="/model">Model</a>
+        <a class="topbar-link" href="/draw">Draw</a>
+      </div>
+    </nav>
+
+    <div class="loading-overlay" id="loadingOverlay">
+      <div class="loading-spinner"></div>
+      <div class="loading-text">生成しています...</div>
+    </div>
+
+    <main class="page-chat">
+      <header class="hero">
+        <h1>不足情報の確認</h1>
+        <p>質問に回答して機械モデリング言語を確定します。</p>
+      </header>
+
+      <section class="card">
+        <form class="form" action="/model/emit" method="post" id="chatForm">
+          <input type="hidden" name="run_id" value="{{ run_id }}" />
+          <input type="hidden" name="part_name" value="{{ part_name or '' }}" />
+          <input type="hidden" name="inferred_part" value="{{ inferred_part or '' }}" />
+          <input type="hidden" name="questions_json" value="{{ questions_json }}" />
+          <input type="hidden" name="answers_json" value="{{ answers_json }}" />
+          <input type="hidden" name="asked_json" value="{{ asked_json or '[]' }}" />
+          <input type="hidden" name="asked_texts_json" value="{{ asked_texts_json or '[]' }}" />
+          <input type="hidden" name="chat_json" value="{{ chat_json or '[]' }}" />
+          <input type="hidden" name="suggested_subcomponents_json" value="{{ suggested_subcomponents_json or '[]' }}" />
+          <input type="hidden" name="suggested_arm_config_json" value="{{ suggested_arm_config_json or '{}' }}" />
+          {% if current_question %}
+            {% set q = current_question %}
+            <input type="hidden" name="current_id" value="{{ q.id }}" />
+            <input type="hidden" name="current_type" value="{{ q.type }}" />
+            <input type="hidden" name="current_text" value="{{ q.text }}" />
+            <div class="chat" id="chatMessages">
+              {% if inferred_part %}
+                <div class="message bot">
+                  <div class="bubble">推定: {{ inferred_part }}（信頼度 {{ inferred_confidence }}）</div>
+                </div>
+              {% endif %}
+              {% if chat_log %}
+                {% for item in chat_log %}
+                  <div class="message {{ 'user' if item.role == 'user' else 'bot' }}">
+                    <div class="bubble">{{ item.text }}</div>
+                  </div>
+                {% endfor %}
+              {% endif %}
+              <div class="message bot">
+                <div class="bubble">{{ q.text }}</div>
+              </div>
+            </div>
+            <div class="chat-input-bar">
+              {% if q.type == "float" %}
+                <input type="number" name="current_value" step="0.1" placeholder="回答を入力" />
+              {% elif q.type == "bool" %}
+                <input type="text" name="current_value" placeholder="y/n" />
+              {% elif q.type == "text" %}
+                <textarea name="current_value" rows="1" placeholder="回答を入力"></textarea>
+              {% else %}
+                <input type="text" name="current_value" placeholder="回答を入力" />
+              {% endif %}
+              <button class="btn" type="submit" name="chat_action" value="answer">送信</button>
+            </div>
+            <div class="chat-actions">
+              <button class="btn secondary" type="submit" name="chat_action" value="question" data-loading="true" data-loading-text="AIが考えています...">質問として送る</button>
+              <button class="btn secondary" type="submit" name="chat_action" value="auto">AIに判定</button>
+              <button class="btn secondary" type="submit" name="skip_all" value="1" data-loading="true">モデリングを完了</button>
+            </div>
+          {% else %}
+            <div class="chat" id="chatMessages">
+              <div class="message bot">
+                <div class="bubble">質問はありません。続けて生成できます。</div>
+              </div>
+            </div>
+            <div class="chat-actions">
+              <button class="btn" type="submit" data-loading="true">MML-JSON を生成</button>
+            </div>
+          {% endif %}
+        </form>
+      </section>
+    </main>
+
+    <script>
+      // Auto-scroll chat to bottom (delayed to ensure layout is complete)
+      var chat = document.getElementById('chatMessages');
+      function scrollToBottom() {
+        if (chat) {
+          chat.scrollTop = chat.scrollHeight;
+        }
+      }
+      scrollToBottom();
+      requestAnimationFrame(scrollToBottom);
+
+      // Show user message in chat on submit + loading overlay
+      document.getElementById('chatForm').addEventListener('submit', function(e) {
+        var btn = e.submitter;
+        var input = this.querySelector('[name="current_value"]');
+        // Append user bubble for any submit with input
+        if (input && input.value.trim()) {
+          var msg = document.createElement('div');
+          msg.className = 'message user';
+          msg.innerHTML = '<div class="bubble">' + input.value.replace(/</g, '&lt;') + '</div>';
+          chat.appendChild(msg);
+          scrollToBottom();
+        }
+        // Loading overlay
+        if (btn && btn.dataset.loading === 'true') {
+          var overlay = document.getElementById('loadingOverlay');
+          if (btn.dataset.loadingText) {
+            overlay.querySelector('.loading-text').textContent = btn.dataset.loadingText;
+          }
+          overlay.classList.add('active');
+        }
+      });
+    </script>
+  </body>
+</html>

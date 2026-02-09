@@ -1,0 +1,113 @@
+{
+  "id": "helical_gear",
+  "category": "gears",
+  "name": {
+    "en": "Helical Gear",
+    "ja": "はすば歯車"
+  },
+  "description": {
+    "en": "A gear with teeth cut at an angle to the axis",
+    "ja": "軸に対して斜めに歯が切られた歯車"
+  },
+  "keywords": [
+    "gear", "helical", "spiral", "helix",
+    "歯車", "はすば歯車", "斜歯歯車", "ヘリカルギア"
+  ],
+  "ai_context": "平行軸または交差軸間の動力伝達に使用。平歯車より静かで滑らか。高速回転や静音が必要な場合に選択。アキシャルスラスト荷重が発生するため、スラストベアリングが必要な場合あり。",
+  "parameters": {
+    "module": {
+      "type": "float",
+      "default": 1.0,
+      "min": 0.5,
+      "max": 10.0,
+      "unit": "mm",
+      "description": {
+        "en": "Normal module",
+        "ja": "直角モジュール"
+      },
+      "ai_inference": true
+    },
+    "teeth_count": {
+      "type": "int",
+      "default": 24,
+      "min": 8,
+      "max": 200,
+      "description": {
+        "en": "Number of teeth",
+        "ja": "歯数"
+      },
+      "ai_inference": true
+    },
+    "helix_angle_deg": {
+      "type": "float",
+      "default": 15.0,
+      "min": 5.0,
+      "max": 45.0,
+      "unit": "deg",
+      "description": {
+        "en": "Helix angle",
+        "ja": "ねじれ角"
+      }
+    },
+    "pressure_angle_deg": {
+      "type": "float",
+      "default": 20.0,
+      "enum_values": [14.5, 20.0, 25.0],
+      "unit": "deg",
+      "description": {
+        "en": "Pressure angle",
+        "ja": "圧力角"
+      }
+    },
+    "face_width_mm": {
+      "type": "float",
+      "default": 15.0,
+      "min": 2.0,
+      "max": 100.0,
+      "unit": "mm",
+      "description": {
+        "en": "Face width",
+        "ja": "歯幅"
+      },
+      "ai_inference": true
+    },
+    "bore_diameter_mm": {
+      "type": "float",
+      "default": 8.0,
+      "min": 0,
+      "max": 100.0,
+      "unit": "mm",
+      "description": {
+        "en": "Bore diameter",
+        "ja": "軸穴径"
+      },
+      "ai_inference": true
+    },
+    "hand": {
+      "type": "string",
+      "default": "right",
+      "enum_values": ["right", "left"],
+      "description": {
+        "en": "Helix hand (right or left)",
+        "ja": "ねじれ方向（右ねじれ/左ねじれ）"
+      }
+    }
+  },
+  "constraints": [
+    {
+      "kind": "expression",
+      "expression": "teeth_count >= 8",
+      "message": "歯数は8以上必要です"
+    }
+  ],
+  "generator": {
+    "module": "mml.library.generators.gear_generators",
+    "function": "generate_helical_gear"
+  },
+  "compatible_with": ["helical_gear", "shaft", "bearing", "motor"],
+  "assembly_hints": {
+    "axis": "z",
+    "origin": "center_bore",
+    "notes": "噛み合い相手は逆方向のねじれ角が必要"
+  }
+}

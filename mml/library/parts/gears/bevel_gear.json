@@ -1,0 +1,105 @@
+{
+  "id": "bevel_gear",
+  "category": "gears",
+  "name": {
+    "en": "Bevel Gear",
+    "ja": "かさ歯車"
+  },
+  "description": {
+    "en": "A conical gear for transmitting power between intersecting shafts",
+    "ja": "交差する軸間で動力を伝達する円錐形歯車"
+  },
+  "keywords": [
+    "gear", "bevel", "cone", "miter", "angular",
+    "歯車", "かさ歯車", "ベベルギア", "傘歯車", "マイターギア"
+  ],
+  "ai_context": "交差する軸間（通常90度）での動力伝達に使用。直交する軸間での回転方向変換に最適。スパイラルベベルはより静かで強度が高い。",
+  "parameters": {
+    "module": {
+      "type": "float",
+      "default": 1.5,
+      "min": 0.5,
+      "max": 10.0,
+      "unit": "mm",
+      "description": {
+        "en": "Module at large end",
+        "ja": "大端モジュール"
+      },
+      "ai_inference": true
+    },
+    "teeth_count": {
+      "type": "int",
+      "default": 20,
+      "min": 12,
+      "max": 100,
+      "description": {
+        "en": "Number of teeth",
+        "ja": "歯数"
+      },
+      "ai_inference": true
+    },
+    "cone_angle_deg": {
+      "type": "float",
+      "default": 45.0,
+      "min": 15.0,
+      "max": 75.0,
+      "unit": "deg",
+      "description": {
+        "en": "Pitch cone angle",
+        "ja": "ピッチ円錐角"
+      }
+    },
+    "face_width_mm": {
+      "type": "float",
+      "default": 12.0,
+      "min": 2.0,
+      "max": 50.0,
+      "unit": "mm",
+      "description": {
+        "en": "Face width",
+        "ja": "歯幅"
+      },
+      "ai_inference": true
+    },
+    "bore_diameter_mm": {
+      "type": "float",
+      "default": 10.0,
+      "min": 0,
+      "max": 50.0,
+      "unit": "mm",
+      "description": {
+        "en": "Bore diameter",
+        "ja": "軸穴径"
+      },
+      "ai_inference": true
+    },
+    "shaft_angle_deg": {
+      "type": "float",
+      "default": 90.0,
+      "min": 45.0,
+      "max": 135.0,
+      "unit": "deg",
+      "description": {
+        "en": "Shaft angle (angle between mating gears)",
+        "ja": "軸角度（噛み合う歯車間の角度）"
+      }
+    }
+  },
+  "constraints": [
+    {
+      "kind": "expression",
+      "expression": "teeth_count >= 12",
+      "message": "かさ歯車の歯数は12以上推奨"
+    }
+  ],
+  "generator": {
+    "module": "mml.library.generators.gear_generators",
+    "function": "generate_bevel_gear"
+  },
+  "compatible_with": ["bevel_gear", "shaft", "bearing"],
+  "assembly_hints": {
+    "axis": "z",
+    "origin": "apex",
+    "notes": "噛み合い相手のcone_angle = shaft_angle - this.cone_angle"
+  }
+}

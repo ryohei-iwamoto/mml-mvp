@@ -1,0 +1,76 @@
+{
+  "id": "bracket",
+  "category": "structural",
+  "name": {
+    "en": "L-Bracket",
+    "ja": "L型ブラケット"
+  },
+  "description": {
+    "en": "An L-shaped bracket for mounting components",
+    "ja": "部品取付用のL字型ブラケット"
+  },
+  "keywords": [
+    "bracket", "L-bracket", "mount", "angle",
+    "ブラケット", "アングル", "取付金具", "L字"
+  ],
+  "ai_context": "部品の固定や垂直・水平面の接続に使用。モーターマウント、センサー取付、構造補強などに最適。",
+  "parameters": {
+    "width_mm": {
+      "type": "float",
+      "default": 60.0,
+      "min": 20.0,
+      "max": 200.0,
+      "unit": "mm",
+      "description": {"ja": "幅"}
+    },
+    "height_mm": {
+      "type": "float",
+      "default": 40.0,
+      "min": 20.0,
+      "max": 200.0,
+      "unit": "mm",
+      "description": {"ja": "高さ（垂直フランジ）"}
+    },
+    "depth_mm": {
+      "type": "float",
+      "default": 40.0,
+      "min": 20.0,
+      "max": 200.0,
+      "unit": "mm",
+      "description": {"ja": "奥行き（水平フランジ）"}
+    },
+    "thickness_mm": {
+      "type": "float",
+      "default": 3.0,
+      "min": 1.0,
+      "max": 10.0,
+      "unit": "mm",
+      "description": {"ja": "板厚"}
+    },
+    "hole_diameter_mm": {
+      "type": "float",
+      "default": 5.0,
+      "min": 2.0,
+      "max": 15.0,
+      "unit": "mm",
+      "description": {"ja": "取付穴径"}
+    },
+    "corner_radius_mm": {
+      "type": "float",
+      "default": 3.0,
+      "min": 0,
+      "max": 20.0,
+      "unit": "mm",
+      "description": {"ja": "角R"}
+    }
+  },
+  "constraints": [],
+  "generator": {
+    "module": "mml.library.generators.structural_generators",
+    "function": "generate_bracket"
+  },
+  "compatible_with": ["bolt", "nut", "washer", "motor", "plate"],
+  "assembly_hints": {
+    "mounting": "horizontal_or_vertical"
+  }
+}

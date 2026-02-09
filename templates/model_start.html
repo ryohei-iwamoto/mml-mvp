@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>機械モデリング言語の作成</title>
+    <link rel="stylesheet" href="/static/style.css?v=3" />
+  </head>
+  <body>
+    <nav class="topbar">
+      <span class="topbar-brand">MML</span>
+      <div class="topbar-nav">
+        <a class="topbar-link" href="/">Home</a>
+        <a class="topbar-link active" href="/model">Model</a>
+        <a class="topbar-link" href="/draw">Draw</a>
+      </div>
+    </nav>
+
+    <main class="page">
+      <header class="hero">
+        <h1>機械モデリング言語の作成</h1>
+        <p>画像認識と対話で部品の意図・機構・制約を構造化します。</p>
+      </header>
+
+      <section class="card">
+        {% if error %}
+          <div class="error">{{ error }}</div>
+        {% endif %}
+        <form class="form" action="/model/vision" method="post" enctype="multipart/form-data">
+          <label class="field">
+            <span>入力画像（任意）</span>
+            <input type="file" name="image" accept="image/*" />
+          </label>
+          <label class="field">
+            <span>補足テキスト（任意）</span>
+            <textarea name="supplemental_text" rows="3" placeholder="やりたいことの補足"></textarea>
+          </label>
+          <label class="field">
+            <span>AI 画像認識</span>
+            <input type="checkbox" name="use_ai" /> AIでラフ画像を解析する
+          </label>
+          <button class="btn" type="submit">作成を開始</button>
+        </form>
+      </section>
+    </main>
+  </body>
+</html>
