@@ -21,17 +21,19 @@
       <div class="loading-text">生成しています...</div>
     </div>
 
+    {% if api_error %}
+    <main class="page">
+      <section class="card">
+        <div class="error">OpenAI GPT API キーが設定されていません。環境変数 <code>OPENAI_API_KEY</code> を設定してください。</div>
+      </section>
+    </main>
+    {% else %}
     <main class="page-chat">
       <header class="hero">
         <h1>不足情報の確認</h1>
         <p>質問に回答して機械モデリング言語を確定します。</p>
       </header>
 
-      {% if api_error %}
-      <section class="card">
-        <div class="error">OpenAI GPT API キーが設定されていません。環境変数 <code>OPENAI_API_KEY</code> を設定してください。</div>
-      </section>
-      {% else %}
       <section class="card">
         <form class="form" action="/model/emit" method="post" id="chatForm">
           <input type="hidden" name="run_id" value="{{ run_id }}" />
@@ -95,41 +97,37 @@
           {% endif %}
         </form>
       </section>
-      {% endif %}
     </main>
+    {% endif %}
 
     <script>
-      // Auto-scroll chat to bottom (delayed to ensure layout is complete)
-      var chat = document.getElementById('chatMessages');
-      function scrollToBottom() {
-        if (chat) {
-          chat.scrollTop = chat.scrollHeight;
+      var form = document.getElementById('chatForm');
+      if (form) {
+        var chat = document.getElementById('chatMessages');
+        function scrollToBottom() {
+          if (chat) chat.scrollTop = chat.scrollHeight;
         }
-      }
-      scrollToBottom();
-      requestAnimationFrame(scrollToBottom);
-
-      // Show user message in chat on submit + loading overlay
-      document.getElementById('chatForm').addEventListener('submit', function(e) {
-        var btn = e.submitter;
-        var input = this.querySelector('[name="current_value"]');
-        // Append user bubble for any submit with input
-        if (input && input.value.trim()) {
-          var msg = document.createElement('div');
-          msg.className = 'message user';
-          msg.innerHTML = '<div class="bubble">' + input.value.replace(/</g, '&lt;') + '</div>';
-          chat.appendChild(msg);
-          scrollToBottom();
-        }
-        // Loading overlay
-        if (btn && btn.dataset.loading === 'true') {
-          var overlay = document.getElementById('loadingOverlay');
-          if (btn.dataset.loadingText) {
-            overlay.querySelector('.loading-text').textContent = btn.dataset.loadingText;
+        scrollToBottom();
+        requestAnimationFrame(scrollToBottom);
+        form.addEventListener('submit', function(e) {
+          var btn = e.submitter;
+          var input = this.querySelector('[name="current_value"]');
+          if (input && input.value.trim()) {
+            var msg = document.createElement('div');
+            msg.className = 'message user';
+            msg.innerHTML = '<div class="bubble">' + input.value.replace(/</g, '&lt;') + '</div>';
+            chat.appendChild(msg);
+            scrollToBottom();
           }
-          overlay.classList.add('active');
-        }
-      });
+          if (btn && btn.dataset.loading === 'true') {
+            var overlay = document.getElementById('loadingOverlay');
+            if (btn.dataset.loadingText) {
+              overlay.querySelector('.loading-text').textContent = btn.dataset.loadingText;
+            }
+            overlay.classList.add('active');
+          }
+        });
+      }
     </script>
   </body>
 </html>

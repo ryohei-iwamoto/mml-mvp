@@ -21,17 +21,19 @@
       <div class="loading-text">図面を生成しています...</div>
     </div>
 
+    {% if api_error %}
+    <main class="page">
+      <section class="card">
+        <div class="error">OpenAI GPT API キーが設定されていません。環境変数 <code>OPENAI_API_KEY</code> を設定してください。</div>
+      </section>
+    </main>
+    {% else %}
     <main class="page-chat">
       <header class="hero">
         <h1>具体設計の確認</h1>
         <p>対話で寸法・材質・精度・加工方法などを決定します。</p>
       </header>
 
-      {% if api_error %}
-      <section class="card">
-        <div class="error">OpenAI GPT API キーが設定されていません。環境変数 <code>OPENAI_API_KEY</code> を設定してください。</div>
-      </section>
-      {% else %}
       <section class="card">
         {% if notice %}
           <div class="notice">{{ notice }}</div>
@@ -125,8 +127,8 @@
           <pre class="code">{{ mml_preview }}</pre>
         </section>
       {% endif %}
-      {% endif %}
     </main>
+    {% endif %}
 
     <script>
       // Auto-scroll chat to bottom (delayed to ensure layout is complete)
