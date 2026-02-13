@@ -770,7 +770,7 @@ def model_vision():
         asked_ids.append(first_question["id"])
     if first_question and first_question.get("text"):
         asked_texts.append(first_question["text"])
-    api_error = True
+    api_error = not os.getenv("OPENAI_API_KEY")
     return render_template(
         "model_chat.html",
         run_id=run_id,
@@ -1937,7 +1937,7 @@ def draw_load():
         asked_texts.append(first_question["text"])
 
     write_json(os.path.join(run_dir, "mml.json"), mml)
-    api_error = True
+    api_error = not os.getenv("OPENAI_API_KEY")
     return render_template(
         "draw_chat.html",
         run_id=run_id,

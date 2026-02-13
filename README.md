@@ -12,12 +12,11 @@
 
 図面に落とし込むと寸法が固定されるため、材料や製法の変更に追従しづらい。
 そこで本研究では、ラフスケッチと対話入力から「設計意図」を抽象言語として保持し、
-その抽象モデルから図面を生成できるパイプラインを作る。
+その抽象モデルから図面・3Dモデルを生成できるパイプラインを作る。
 
-本MVPはその第一段階として、板金ブラケット/プレート系に対象を限定し、
-以下を一気通貫で実現する：
+本システムはCADの代替ではなく、**CAD前段階の設計意図コンパイラ**である。
 
-**ラフ画像 → 認識 → 対話で曖昧さ解消 → 中間言語(MML-JSON) → 図面(DXF)出力**
+**ラフ画像 → 認識 → 対話で曖昧さ解消 → 中間言語(MML-JSON) → 図面(DXF) / 画像(PNG) / 3Dモデル(STL) 出力**
 
 ---
 
@@ -26,59 +25,113 @@
 このMVPにおける「機械モデリング言語」は、CADのように形状操作を列挙する言語ではない。
 設計の意図を、次のレイヤで統合表現するための中間言語である。
 
-- Feature: 何を作るか（例: plate, bracket）
-- Interface: 何と繋ぐか（例: bolt pattern, hole standard）
-- Constraint: 何を満たすべきか（例: 板厚 >= 2mm, 曲げR >= t, 端距離 >= 2d）
-- Provenance: どれが画像推定で、どれが対話で確定したか（追跡可能性）
+| レイヤ | 説明 | 例 |
+|--------|------|-----|
+| Feature | 何を作るか | plate, bracket, gear, RobotArm |
+| Interface | 何と繋ぐか | bolt pattern, hole standard |
+| Constraint | 何を満たすべきか | 板厚 >= 2mm, 曲げR >= t, 端距離 >= 2d |
+| Intent | 設計意図（91フィールド） | 機構種別, 運動タイプ, 荷重条件, サブコンポーネント |
+| Provenance | 各値の出所 | 画像推定 or 対話確定（追跡可能性） |
 
 MVPでは中間言語として **MML-JSON** を採用する。
-将来的にテキストDSLへ拡張可能だが、まずは自動生成・検証しやすいJSONに固定する。
 
 ---
 
-## 2. スコープ（MVPでやる / やらない）
+## 2. 実装済み機能
 
-### MVPでやる
-- 白背景・黒線のラフ画像からの要素認識（外形/穴/曲げ線候補）
-- 認識結果が曖昧な箇所を「対話」で確定（スケール、穴規格など）
-- 中間言語(MML-JSON)の生成
-- 図面(DXF)の生成（外形線・穴・曲げ線・注記）
-- 推論レポート(report.json)出力（確信度、質問、回答、確定値）
+### 入力
+- **画像アップロード**: ラフスケッチ画像（PNG, JPG, BMP）からの特徴認識
+- **AI画像認識**: OpenAI GPT-4o-mini による部品種別の推定（写真にも対応）
+- **対話チャット**: AIによる動的質問生成、またはルールベースの質問
+- **MML-JSONアップロード**: 既存のMML-JSONを読み込んでの修正・図面生成
+- **直接フォーム入力**: パラメータを直接指定して図面生成
 
-### MVPでやらない
-- 3D STEP生成
-- 本格FEM/最適化（強度計算は将来拡張）
-- 写真や複雑背景のラフ対応
-- 完全自動で寸法が確定すること（必ず1つ以上ユーザー回答でスケール確定）
+### 出力フォーマット
+- **MML-JSON** (`mml.json`): 設計意図を含む中間言語データ
+- **DXF** (`drawing.dxf`): 第三角法による三面図（上面図・正面図・右側面図）、レイヤ分け済み
+- **PNG** (`drawing.png`): DXF内容のラスタ画像
+- **STL** (`model.stl`): 3Dメッシュデータ（板厚押出し、穴ボス、歯車歯形など対応）
+- **レポート** (`report.json`): 推論過程・Q&Aログ・確信度の記録
+
+### 対応部品タイプ
+- **プレート / ブラケット**: 板金部品（穴・曲げ対応）
+- **歯車（Gear）**: 歯形プロファイル付き3D生成
+- **ロボットアーム（RobotArm）**: 12部品のマルチコンポーネント組立
+  - base, joint, link, end_effector, actuator, gear, shaft, bearing
+  - `assembly.stl` として一体組立ファイルを生成
+
+### 画像認識（Vision）
+- **外形検出**: 最大輪郭抽出、Douglas-Peucker近似
+- **穴検出**: 3段階（輪郭ベース → 階層ベース → ハフ円）、重複排除、最大50穴
+- **曲げ線検出**: 確率的ハフ直線検出、外形内フィルタ
+- **AI認識**: GPT-4o-mini によるパーツ種別ヒント
+
+### 設計意図キャプチャ（91フィールド）
+意味的意図、運動学、力学、構造、組立、荷重ケース、品質、ライフサイクル、熱/電気、
+ユーザー体験、歯車固有パラメータなど、91の設計意図フィールドを対話で収集する。
+
+### AI統合（OpenAI GPT-4o-mini）
+- 画像からの部品推定
+- 動的な質問生成（設計意図 / 幾何形状）
+- ユーザー入力の分類（回答 / 質問 / 明確化要求）
+- サブコンポーネント提案
+- ロボットアーム構成提案・寸法最適化
 
 ---
 
 ## 3. 全体パイプライン
 
-1) `vision`: 画像から外形・穴・曲げ線候補を抽出し、`vision.json`へ
-2) `interact`: `vision.json`を元に、スケールや穴規格などの不足情報を質問して確定
-3) `emit`: 確定した内容を `mml.json` (MML-JSON) と `report.json` として出力
-4) `draw`: `mml.json` から図面 `drawing.dxf` を生成
+```
+入力（画像 / JSON）
+  → Vision: 外形・穴・曲げ線の認識 → vision.json
+  → Interact: 対話による設計意図の収集（91フィールド）
+  → Emit: MML-JSON + report.json の生成
+  → Draw: DXF / PNG / STL の出力
+```
 
 ---
 
-## 4. CLI
+## 4. システム構成
 
-- `mml vision input.png -o out/`
-  - 出力: `out/vision.json`
+### Webアプリ（Flask）
 
-- `mml interact input.png --chat=rule -o out/`
-  - 出力: `out/mml.json`, `out/report.json`
+ブラウザから操作できるWebインターフェースを提供する。
 
-- `mml draw out/mml.json -o out/`
-  - 出力: `out/drawing.dxf`
+#### ワークフロー
 
-- `mml pipeline input.png --chat=rule -o out/`
-  - 出力: `out/vision.json`, `out/mml.json`, `out/report.json`, `out/drawing.dxf`
+| ワークフロー | 説明 |
+|-------------|------|
+| **Model** (`/model`) | 画像アップロード → AI/ルールベース対話 → MML-JSON生成 → 図面出力 |
+| **Draw** (`/draw`) | MML-JSONを読み込み → 対話で幾何形状を調整 → DXF/PNG/STL出力 |
+
+#### 主要エンドポイント
+
+| メソッド | パス | 機能 |
+|---------|------|------|
+| GET | `/` | ホーム画面 |
+| GET | `/model` | Modelワークフロー開始画面 |
+| POST | `/model/vision` | 画像認識 + 対話開始 |
+| POST | `/model/emit` | MML-JSON生成 + 図面出力 |
+| GET | `/draw` | Drawワークフロー開始画面 |
+| POST | `/draw/load` | MML-JSON読み込み + 対話開始 |
+| POST | `/draw/chat` | 対話による幾何形状の調整 |
+| POST | `/draw/generate` | DXF/PNG/STL生成 |
+| POST | `/draw/run` | 直接パラメータ入力での生成 |
+| GET | `/outputs/<run_id>/<filename>` | 生成ファイルのダウンロード |
+
+### CLI
+
+```bash
+mml vision input.png -o out/         # → vision.json
+mml interact input.png --chat=rule -o out/  # → mml.json, report.json
+mml draw out/mml.json -o out/        # → drawing.dxf
+mml pipeline input.png --chat=rule -o out/  # → 全パイプライン実行
+mml library list                     # → 部品ライブラリ一覧
+```
 
 ---
 
-## 5. MML-JSON（中間言語）スキーマ（MVP最小構成）
+## 5. MML-JSON スキーマ
 
 ```json
 {
@@ -103,246 +156,187 @@ MVPでは中間言語として **MML-JSON** を採用する。
     { "kind": "bend_radius_gte_thickness" },
     { "kind": "edge_distance_gte", "multiplier": 2.0 }
   ],
+  "intent": {
+    "intent_summary": "...",
+    "function_primary": "...",
+    "mechanism_type": "...",
+    "subcomponents": ["base", "joint", "link", "..."],
+    "arm_config": { "dof": 5, "drive": "servo", "reach_mm": 300 }
+  },
   "provenance": {
     "vision": { "file": "input.png", "version": "0.1" },
-    "chat": { "mode": "rule", "questions": [], "answers": [] }
+    "chat": { "mode": "ai", "questions": [], "answers": [] }
   }
 }
 ```
 
-## 6. 完了条件
+---
 
-- 画像→認識→対話→中間言語→DXF出力が一気通貫で動く
-- mml.json に provenance（vision/chat）が含まれる
-- DXFがレイヤ分けされ、外形と穴が円で出力される
-- 自動テストで3ケースが再現可能（画像はテスト内で生成）
+## 6. 出力フォーマット詳細
+
+### DXF (`drawing.dxf`)
+第三角法による三面図を出力する。
+
+| レイヤ | 内容 |
+|--------|------|
+| OUTLINE | 外形線 |
+| HOLES | 穴の円 |
+| BEND | 曲げ線（一点鎖線） |
+| CENTER | 穴・フィーチャの中心線 |
+| HIDDEN | 投影図の隠れ線 |
+| TEXT | 部品名・材料・穴情報・曲げ情報の注記 |
+| VIEW_FRAME | ビュー枠 |
+
+### STL (`model.stl`)
+3Dメッシュを出力する。部品タイプごとに適切な形状を生成する。
+
+| 部品タイプ | 3D形状 |
+|-----------|--------|
+| プレート / ブラケット | 板厚押出し + 穴 |
+| リンク（link） | 角丸矩形 + ボスリング |
+| ジョイント（joint） | 円柱 + 中心穴 + カラー |
+| ベース（base） | 矩形 + 4穴 + スタンドオフ |
+| 歯車（gear） | 歯形プロファイル押出し |
+| シャフト（shaft） | 円柱 |
+| ベアリング（bearing） | リング + 内径穴 |
+| エンドエフェクタ | 小型ボックス |
+| アクチュエータ | 円柱 |
+
+ロボットアームの場合、全コンポーネントを結合した `assembly.stl` も生成する。
 
 ---
 
-## 7. 画像認識モジュール仕様
+## 7. ディレクトリ構成
 
-### 7.1 前提条件（MVP制約）
-- 入力画像: 白背景・黒線の線画
-- 1画像につき1部品
-- 対象: プレート / 板金ブラケット
-- パース歪みなし
-- 塗りつぶし領域なし（線画のみ）
-
-### 7.2 前処理
-1. グレースケール変換
-2. 二値化（大津の閾値）
-3. モルフォロジー演算（オープニング/クロージング）でノイズ除去
-4. エッジ検出（Canny）
-
-### 7.3 特徴抽出
-
-#### 外形検出
-- 全輪郭を抽出
-- 最大面積の輪郭を外形として選択
-- 近似多角形（Douglas-Peucker法）
-- ピクセル座標で順序付き多角形として保存
-
-#### 穴検出
-- ハフ円変換 または
-- 高い真円度を持つ閉じた輪郭を検出
-- 中心(cx, cy)、半径(r)、確信度を保存
-
-#### 曲げ線検出
-- 確率的ハフ直線検出を使用
-- 外形内部の長い直線をフィルタリング
-- 線分の端点と確信度を保存
-
-### 7.4 画像認識出力フォーマット (`vision.json`)
-```json
-{
-  "outline": { "type": "polygon", "points_px": [[...]] },
-  "holes": [
-    { "center_px": [120, 80], "radius_px": 9, "confidence": 0.82 }
-  ],
-  "bend_lines": [
-    { "line_px": [[60, 10], [60, 180]], "confidence": 0.63 }
-  ],
-  "notes_regions": [
-    { "bbox_px": [x,y,w,h], "confidence": 0.55 }
-  ]
-}
+```
+product/
+├── app.py                  # Flaskメインアプリケーション
+├── requirements.txt        # Python依存パッケージ
+├── .env.example            # 環境変数テンプレート
+├── mml/
+│   ├── vision.py           # 画像認識（OpenCV）
+│   ├── ai_vision.py        # AI画像認識（GPT-4o-mini）
+│   ├── interact.py         # 対話モジュール（91意図フィールド）
+│   ├── intent.py           # 部品推定・ライブラリマッピング
+│   ├── emit.py             # MML-JSON生成
+│   ├── draw.py             # DXF/PNG図面生成
+│   ├── stl.py              # STL 3Dメッシュ生成
+│   ├── pipeline.py         # パイプラインオーケストレーション
+│   ├── cli.py              # CLIインターフェース
+│   ├── utils.py            # ユーティリティ関数
+│   └── library/            # 部品ライブラリ
+│       ├── catalog.py      # 部品カタログ
+│       ├── selector.py     # AI/ヒューリスティック部品選択
+│       ├── validators.py   # パラメータバリデーション
+│       ├── generator.py    # メッシュ生成
+│       ├── generators/     # 部品タイプ別ジェネレータ
+│       └── parts/          # 部品定義
+├── templates/
+│   ├── index.html          # ホーム画面
+│   ├── model_start.html    # Model開始画面
+│   ├── model_chat.html     # Model対話画面
+│   ├── model_result.html   # Model結果画面
+│   ├── draw_start.html     # Draw開始画面
+│   ├── draw_chat.html      # Draw対話画面
+│   ├── draw_result.html    # Draw結果画面
+│   └── result.html         # レガシー結果画面
+├── static/
+│   └── style.css           # スタイルシート
+├── outputs/                # 生成物出力先
+└── tests/                  # テスト
 ```
 
-## 8. 対話/チャットモジュール仕様
+---
 
-### 8.1 目的
+## 8. セットアップ
 
-画像認識だけでは判断できない曖昧さを解消する。
+### 必要環境
+- Python 3.10+
+- OpenAI APIキー（AI機能利用時）
 
-典型的な曖昧さ:
-- ピクセル-mm間のスケール
-- 穴規格（M4 / M5 / M6 ...）
-- 板厚
-- 曲げ角度と内側R
+### インストール
 
-### 8.2 必須質問
-
-スケールを定義する質問が最低1つ回答されなければならない。
-
-例:
-- 「外形プレートの実際の幅(mm)は？」
-- 「この穴はどのボルト規格に対応しますか？」
-
-### 8.3 ルールベースチャット（MVPデフォルト）
-
-MVPでは、決定論的なルールベースの質問生成器で十分とする。
-
-ロジック例:
-- `scale.px_to_mm` が未定義 → 基準寸法を1つ質問
-- 穴の半径にばらつきがある → 統一するか質問
-- 曲げが検出され角度未定義 → 曲げ角度を質問（デフォルト提案: 90度）
-
-### 8.4 チャット状態表現
-```json
-{
-  "questions": [
-    { "id": "scale_ref", "text": "プレートの幅(mm)は？" }
-  ],
-  "answers": [
-    { "id": "scale_ref", "value": 100 }
-  ]
-}
+```bash
+cd product
+pip install -r requirements.txt
 ```
 
-## 9. 中間言語出力（MML-JSON）
+### 環境変数設定
 
-### 9.1 責務
-- ピクセルベースのジオメトリを実寸法単位に変換
-- 規格の正規化（例: ボルト → ばか穴径）
-- 出所の記録（画像認識 vs ユーザー判断）
-
-### 9.2 設計原則
-
-MML-JSONは以下を満たす:
-- 決定論的であること
-- 明示的であること（暗黙のデフォルト値なし）
-- 追跡可能であること（各値がなぜ選ばれたか）
-
-## 10. 図面生成（DXF）
-
-### 10.1 使用ライブラリ
-ezdxf
-
-### 10.2 レイヤ構成
-- OUTLINE: 外形線（正面図/上面図/右側面図）
-- HOLES: 穴の円（上面図）
-- BEND: 曲げ線（一点鎖線）
-- CENTER: 穴・フィーチャの中心線
-- HIDDEN: 投影図の隠れ線
-- TEXT: 注記
-
-### 10.2.1 ビュー配置
-第三角法（正面図の上に上面図、正面図の右に右側面図）
-
-### 10.3 注記ルール
-
-常に含める:
-- 部品名
-- 材料
-- 板厚
-- 穴規格のサマリ
-
-MVPでは寸法矢印なし、シンプルなテキスト注記のみ。
-
-例:
-```
-PART: Bracket
-MAT: A5052  t=2.0
-HOLES: 4x M5 clearance
-BEND: 90deg R=2.0
+```bash
+cp .env.example .env
+# .env を編集して OPENAI_API_KEY を設定
 ```
 
-## 11. CLIの動作詳細
+### 起動
 
-### mml vision
-- 入力: 画像ファイル
-- 出力: vision.json
-- ユーザー操作なし
+```bash
+# Webアプリ
+python app.py
+# → http://localhost:5000
 
-### mml interact
-- 入力: 画像 または vision.json
-- 出力: mml.json, report.json
-- 必須質問への回答が必要
+# CLI
+python -m mml pipeline input.png --chat=rule -o out/
+```
 
-### mml draw
-- 入力: mml.json
-- 出力: drawing.dxf
+### 主な依存ライブラリ
 
-### mml pipeline
-- vision → interact → draw を順に実行
+| ライブラリ | 用途 |
+|-----------|------|
+| flask | Webフレームワーク |
+| opencv-python-headless | 画像認識 |
+| numpy | 数値計算 |
+| ezdxf | DXFファイル生成 |
+| trimesh | 3Dメッシュ操作 |
+| shapely | ポリゴンジオメトリ |
+| mapbox-earcut | ポリゴン三角形分割 |
+| openai | OpenAI API クライアント |
 
-## 12. テスト戦略
+---
 
-### 12.1 テスト方針
-- 全テストが再現可能であること
-- 外部画像アセットを使用しない
-- テスト画像はプログラムで生成する
+## 9. 出力ディレクトリ構造
 
-### 12.2 テスト画像生成
+```
+outputs/<run_id>/
+├── input.png              # 入力画像
+├── vision.json            # 画像認識結果
+├── mml.json               # MML-JSON（中間言語）
+├── report.json            # 推論レポート
+├── drawing.dxf            # 三面図（DXF）
+├── drawing.png            # 三面図（PNG）
+├── model.stl              # 3Dモデル（STL）
+├── <component>_0/         # マルチコンポーネント時の各部品
+│   ├── mml.json
+│   ├── drawing.dxf
+│   ├── drawing.png
+│   ├── model.stl
+│   └── drawing_report.json
+└── assembly.stl           # 組立モデル（ロボットアーム時）
+```
 
-OpenCVで合成線画を生成:
-- 矩形 → 外形
-- 円 → 穴
-- 直線 → 曲げ線
+---
 
-## 13. テストケース
+## 10. テスト
 
-### テストケース1: 4穴付きシンプルプレート
+テスト画像はプログラムで生成するため、外部画像アセット不要。
 
-目的: エンドツーエンドパイプラインの検証
+```bash
+cd product
+python -m pytest tests/
+```
 
-手順:
-1. 矩形（200x100 px）を生成
-2. 等間隔の4つの円を生成
-3. スケールとボルト規格を回答
+### テストケース
+1. **4穴付きシンプルプレート**: パイプライン一気通貫の検証
+2. **曲げ線付きプレート**: 曲げ認識と対話の検証
+3. **曖昧な穴サイズ**: 対話による曖昧さ解消の検証
 
-期待結果:
-- mml.json が生成される
-- drawing.dxf に外形と4つの穴が含まれる
+---
 
-### テストケース2: 曲げ線付きプレート
-
-目的: 曲げ認識と対話の検証
-
-手順:
-1. 矩形 + 内部の直線
-2. 曲げ角度と板厚を回答
-
-期待結果:
-- mml.json に曲げ情報が存在する
-- DXFにBENDレイヤが存在する
-
-### テストケース3: 曖昧な穴サイズ
-
-目的: 対話による曖昧さ解消の検証
-
-手順:
-1. 半径の異なる2つの穴
-2. ユーザーが統一規格を選択
-
-期待結果:
-- 全穴が同一径に正規化される
-- report.json に正規化の判断が記録される
-
-## 14. 卒業研究における位置づけ
+## 11. 卒業研究における位置づけ
 
 本MVPが示すもの:
 - 画像ベースの解釈とシンボリックモデリングの統合
 - 機械モデリング言語の具体的な実現
-- 抽象的な設計意図から製造成果物への再現可能なパイプライン
-
-本システムはCADの代替ではなく、**CAD前段階の設計意図コンパイラ**である。
-
-## 15. 今後の展望（MVPスコープ外）
-
-- テキストベースのDSLフロントエンド
-- 3Dジオメトリ（STEP）
-- FEM連携
-- マルチパートアセンブリ
-- 学習ベースの画像認識モデル
-- LLMによる設計提案
+- 抽象的な設計意図から製造成果物（図面・3Dモデル）への再現可能なパイプライン
+- AI対話による設計意図の段階的詳細化
+- マルチコンポーネント組立（ロボットアーム）の自動生成
