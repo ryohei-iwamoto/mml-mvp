@@ -1,6 +1,6 @@
-# MML-MVP: Mechanical Modeling Language (Graduation Research MVP)
+# MML-MVP: 機械モデリング言語（卒業研究MVP）
 
-## 0. Why / Concept (やりたいことの概念)
+## 0. コンセプト
 
 機械設計では、最終成果物として「寸法が確定した図面/CAD」が作られる。
 しかし設計の初期段階では、実際に重要なのは以下である。
@@ -21,7 +21,7 @@
 
 ---
 
-## 1. What is "Mechanical Modeling Language" in this MVP
+## 1. 本MVPにおける「機械モデリング言語」とは
 
 このMVPにおける「機械モデリング言語」は、CADのように形状操作を列挙する言語ではない。
 設計の意図を、次のレイヤで統合表現するための中間言語である。
@@ -36,16 +36,16 @@ MVPでは中間言語として **MML-JSON** を採用する。
 
 ---
 
-## 2. Scope (MVPでやる / やらない)
+## 2. スコープ（MVPでやる / やらない）
 
-### ✅ MVPでやる
+### MVPでやる
 - 白背景・黒線のラフ画像からの要素認識（外形/穴/曲げ線候補）
 - 認識結果が曖昧な箇所を「対話」で確定（スケール、穴規格など）
 - 中間言語(MML-JSON)の生成
 - 図面(DXF)の生成（外形線・穴・曲げ線・注記）
 - 推論レポート(report.json)出力（確信度、質問、回答、確定値）
 
-### ❌ MVPでやらない
+### MVPでやらない
 - 3D STEP生成
 - 本格FEM/最適化（強度計算は将来拡張）
 - 写真や複雑背景のラフ対応
@@ -53,7 +53,7 @@ MVPでは中間言語として **MML-JSON** を採用する。
 
 ---
 
-## 3. High-level Pipeline (全体パイプライン)
+## 3. 全体パイプライン
 
 1) `vision`: 画像から外形・穴・曲げ線候補を抽出し、`vision.json`へ
 2) `interact`: `vision.json`を元に、スケールや穴規格などの不足情報を質問して確定
@@ -65,20 +65,20 @@ MVPでは中間言語として **MML-JSON** を採用する。
 ## 4. CLI
 
 - `mml vision input.png -o out/`
-  - outputs: `out/vision.json`
+  - 出力: `out/vision.json`
 
 - `mml interact input.png --chat=rule -o out/`
-  - outputs: `out/mml.json`, `out/report.json`
+  - 出力: `out/mml.json`, `out/report.json`
 
 - `mml draw out/mml.json -o out/`
-  - outputs: `out/drawing.dxf`
+  - 出力: `out/drawing.dxf`
 
 - `mml pipeline input.png --chat=rule -o out/`
-  - outputs: `out/vision.json`, `out/mml.json`, `out/report.json`, `out/drawing.dxf`
+  - 出力: `out/vision.json`, `out/mml.json`, `out/report.json`, `out/drawing.dxf`
 
 ---
 
-## 5. MML-JSON (Intermediate Language) Schema (MVP minimal)
+## 5. MML-JSON（中間言語）スキーマ（MVP最小構成）
 
 ```json
 {
@@ -110,52 +110,49 @@ MVPでは中間言語として **MML-JSON** を採用する。
 }
 ```
 
-## 6. Acceptance Criteria (完了条件)
+## 6. 完了条件
 
- 画像→認識→対話→中間言語→DXF出力が一気通貫で動く
-
- mml.json に provenance（vision/chat）が含まれる
-
- DXFがレイヤ分けされ、外形と穴が円で出力される
-
- 自動テストで3ケースが再現可能（画像はテスト内で生成）
+- 画像→認識→対話→中間言語→DXF出力が一気通貫で動く
+- mml.json に provenance（vision/chat）が含まれる
+- DXFがレイヤ分けされ、外形と穴が円で出力される
+- 自動テストで3ケースが再現可能（画像はテスト内で生成）
 
 ---
 
-## 7. Vision Module Specification (Image Recognition)
+## 7. 画像認識モジュール仕様
 
-### 7.1 Assumptions (MVP Constraints)
-- Input image: white background, black line drawing
-- Single part per image
-- Target domain: plate / sheet-metal bracket
-- No perspective distortion
-- No filled regions (line art only)
+### 7.1 前提条件（MVP制約）
+- 入力画像: 白背景・黒線の線画
+- 1画像につき1部品
+- 対象: プレート / 板金ブラケット
+- パース歪みなし
+- 塗りつぶし領域なし（線画のみ）
 
-### 7.2 Preprocessing
-1. Convert to grayscale
-2. Binarize (Otsu threshold)
-3. Morphological open/close to remove noise
-4. Edge detection (Canny)
+### 7.2 前処理
+1. グレースケール変換
+2. 二値化（大津の閾値）
+3. モルフォロジー演算（オープニング/クロージング）でノイズ除去
+4. エッジ検出（Canny）
 
-### 7.3 Feature Extraction
+### 7.3 特徴抽出
 
-#### Outline Detection
-- Extract all contours
-- Select the contour with the largest area as the outer outline
-- Approximate polygon (Douglas–Peucker)
-- Store as ordered polygon in pixel coordinates
+#### 外形検出
+- 全輪郭を抽出
+- 最大面積の輪郭を外形として選択
+- 近似多角形（Douglas-Peucker法）
+- ピクセル座標で順序付き多角形として保存
 
-#### Hole Detection
-- Use Hough Circle Transform OR
-- Detect closed contours with high circularity
-- Store center (cx, cy), radius (r), confidence
+#### 穴検出
+- ハフ円変換 または
+- 高い真円度を持つ閉じた輪郭を検出
+- 中心(cx, cy)、半径(r)、確信度を保存
 
-#### Bend Line Detection
-- Use probabilistic Hough line detection
-- Filter long straight lines inside the outline
-- Store line endpoints and confidence
+#### 曲げ線検出
+- 確率的ハフ直線検出を使用
+- 外形内部の長い直線をフィルタリング
+- 線分の端点と確信度を保存
 
-### 7.4 Vision Output Format (`vision.json`)
+### 7.4 画像認識出力フォーマット (`vision.json`)
 ```json
 {
   "outline": { "type": "polygon", "points_px": [[...]] },
@@ -169,245 +166,183 @@ MVPでは中間言語として **MML-JSON** を採用する。
     { "bbox_px": [x,y,w,h], "confidence": 0.55 }
   ]
 }
-
 ```
 
-8. Interaction / Chat Module Specification
-8.1 Purpose
+## 8. 対話/チャットモジュール仕様
 
-Resolve ambiguity that cannot be determined from image recognition alone.
+### 8.1 目的
 
-Typical ambiguities:
+画像認識だけでは判断できない曖昧さを解消する。
 
-Pixel-to-mm scale
+典型的な曖昧さ:
+- ピクセル-mm間のスケール
+- 穴規格（M4 / M5 / M6 ...）
+- 板厚
+- 曲げ角度と内側R
 
-Hole standard (M4 / M5 / M6 ...)
+### 8.2 必須質問
 
-Plate thickness
+スケールを定義する質問が最低1つ回答されなければならない。
 
-Bend angle and inner radius
+例:
+- 「外形プレートの実際の幅(mm)は？」
+- 「この穴はどのボルト規格に対応しますか？」
 
-8.2 Mandatory Questions
+### 8.3 ルールベースチャット（MVPデフォルト）
 
-At least one scale-defining question must be answered.
+MVPでは、決定論的なルールベースの質問生成器で十分とする。
 
-Examples:
+ロジック例:
+- `scale.px_to_mm` が未定義 → 基準寸法を1つ質問
+- 穴の半径にばらつきがある → 統一するか質問
+- 曲げが検出され角度未定義 → 曲げ角度を質問（デフォルト提案: 90度）
 
-"What is the real width (mm) of the outer plate?"
-
-"What bolt standard are these holes for?"
-
-8.3 Rule-based Chat (MVP Default)
-
-For MVP, a deterministic rule-based question generator is sufficient.
-
-Example logic:
-
-If scale.px_to_mm undefined → ask for one reference dimension
-
-If hole radii vary → ask if they should be unified
-
-If bend detected and angle undefined → ask bend angle (default suggestion: 90deg)
-
-8.4 Chat State Representation
+### 8.4 チャット状態表現
+```json
 {
   "questions": [
-    { "id": "scale_ref", "text": "What is the plate width in mm?" }
+    { "id": "scale_ref", "text": "プレートの幅(mm)は？" }
   ],
   "answers": [
     { "id": "scale_ref", "value": 100 }
   ]
 }
+```
 
-9. Intermediate Language Emission (MML-JSON)
-9.1 Responsibilities
+## 9. 中間言語出力（MML-JSON）
 
-Convert pixel-based geometry into real units
+### 9.1 責務
+- ピクセルベースのジオメトリを実寸法単位に変換
+- 規格の正規化（例: ボルト → ばか穴径）
+- 出所の記録（画像認識 vs ユーザー判断）
 
-Normalize standards (e.g., bolt → clearance diameter)
+### 9.2 設計原則
 
-Record provenance (vision vs user decision)
+MML-JSONは以下を満たす:
+- 決定論的であること
+- 明示的であること（暗黙のデフォルト値なし）
+- 追跡可能であること（各値がなぜ選ばれたか）
 
-9.2 Design Principle
+## 10. 図面生成（DXF）
 
-MML-JSON must be:
-
-Deterministic
-
-Explicit (no hidden defaults)
-
-Traceable (why each value was chosen)
-
-10. Drawing Generation (DXF)
-10.1 Library
-
+### 10.1 使用ライブラリ
 ezdxf
 
-10.2 Layers
+### 10.2 レイヤ構成
+- OUTLINE: 外形線（正面図/上面図/右側面図）
+- HOLES: 穴の円（上面図）
+- BEND: 曲げ線（一点鎖線）
+- CENTER: 穴・フィーチャの中心線
+- HIDDEN: 投影図の隠れ線
+- TEXT: 注記
 
-OUTLINE: visible edges (top/front/right views)
+### 10.2.1 ビュー配置
+第三角法（正面図の上に上面図、正面図の右に右側面図）
 
-HOLES: circles for holes (top view)
+### 10.3 注記ルール
 
-BEND: bend lines (center linetype)
+常に含める:
+- 部品名
+- 材料
+- 板厚
+- 穴規格のサマリ
 
-CENTER: center lines for holes/features
+MVPでは寸法矢印なし、シンプルなテキスト注記のみ。
 
-HIDDEN: hidden edges in projected views
-
-TEXT: annotations
-
-10.2.1 View layout
-
-Third-angle projection (TOP above FRONT, RIGHT on the right of FRONT)
-
-10.3 Annotation Rules
-
-Always include:
-
-Part name
-
-Material
-
-Plate thickness
-
-Hole standard summary
-
-Use simple text, no dimension arrows in MVP
-
-Example:
-
+例:
+```
 PART: Bracket
 MAT: A5052  t=2.0
 HOLES: 4x M5 clearance
 BEND: 90deg R=2.0
+```
 
-11. CLI Behavior Details
-mml vision
+## 11. CLIの動作詳細
 
-Input: image file
+### mml vision
+- 入力: 画像ファイル
+- 出力: vision.json
+- ユーザー操作なし
 
-Output: vision.json
+### mml interact
+- 入力: 画像 または vision.json
+- 出力: mml.json, report.json
+- 必須質問への回答が必要
 
-No user interaction
+### mml draw
+- 入力: mml.json
+- 出力: drawing.dxf
 
-mml interact
+### mml pipeline
+- vision → interact → draw を順に実行
 
-Input: image or vision.json
+## 12. テスト戦略
 
-Output: mml.json, report.json
+### 12.1 テスト方針
+- 全テストが再現可能であること
+- 外部画像アセットを使用しない
+- テスト画像はプログラムで生成する
 
-Requires answering mandatory questions
+### 12.2 テスト画像生成
 
-mml draw
+OpenCVで合成線画を生成:
+- 矩形 → 外形
+- 円 → 穴
+- 直線 → 曲げ線
 
-Input: mml.json
+## 13. テストケース
 
-Output: drawing.dxf
+### テストケース1: 4穴付きシンプルプレート
 
-mml pipeline
+目的: エンドツーエンドパイプラインの検証
 
-Executes vision → interact → draw in order
+手順:
+1. 矩形（200x100 px）を生成
+2. 等間隔の4つの円を生成
+3. スケールとボルト規格を回答
 
-12. Testing Strategy
-12.1 Testing Philosophy
+期待結果:
+- mml.json が生成される
+- drawing.dxf に外形と4つの穴が含まれる
 
-All tests must be reproducible
+### テストケース2: 曲げ線付きプレート
 
-No external image assets
+目的: 曲げ認識と対話の検証
 
-Test images are generated programmatically
+手順:
+1. 矩形 + 内部の直線
+2. 曲げ角度と板厚を回答
 
-12.2 Test Image Generation
+期待結果:
+- mml.json に曲げ情報が存在する
+- DXFにBENDレイヤが存在する
 
-Use OpenCV to generate synthetic line drawings:
+### テストケース3: 曖昧な穴サイズ
 
-Rectangles for outlines
+目的: 対話による曖昧さ解消の検証
 
-Circles for holes
+手順:
+1. 半径の異なる2つの穴
+2. ユーザーが統一規格を選択
 
-Lines for bends
+期待結果:
+- 全穴が同一径に正規化される
+- report.json に正規化の判断が記録される
 
-13. Test Cases
-Test Case 1: Simple Plate with 4 Holes
+## 14. 卒業研究における位置づけ
 
-Purpose:
+本MVPが示すもの:
+- 画像ベースの解釈とシンボリックモデリングの統合
+- 機械モデリング言語の具体的な実現
+- 抽象的な設計意図から製造成果物への再現可能なパイプライン
 
-Validate end-to-end pipeline
+本システムはCADの代替ではなく、**CAD前段階の設計意図コンパイラ**である。
 
-Steps:
+## 15. 今後の展望（MVPスコープ外）
 
-Generate rectangle (200x100 px)
-
-Generate 4 equal circles
-
-Answer scale and bolt standard
-
-Expected:
-
-mml.json generated
-
-drawing.dxf contains outline and 4 holes
-
-Test Case 2: Plate with Bend Line
-
-Purpose:
-
-Validate bend recognition and interaction
-
-Steps:
-
-Rectangle + internal straight line
-
-Answer bend angle and thickness
-
-Expected:
-
-bend entry exists in mml.json
-
-BEND layer exists in DXF
-
-Test Case 3: Ambiguous Hole Sizes
-
-Purpose:
-
-Validate ambiguity resolution via chat
-
-Steps:
-
-Two holes with different radii
-
-User selects unified standard
-
-Expected:
-
-All holes normalized to same diameter
-
-report.json records normalization decision
-
-14. Graduation Research Positioning
-
-This MVP demonstrates:
-
-Integration of image-based interpretation and symbolic modeling
-
-A concrete realization of a mechanical modeling language
-
-A reproducible pipeline from abstract intent to manufacturing artifact
-
-This system is not a replacement for CAD,
-but a pre-CAD design intent compiler.
-
-15. Future Work (Out of MVP Scope)
-
-Text-based DSL frontend
-
-3D geometry (STEP)
-
-FEM integration
-
-Multi-part assemblies
-
-Learning-based vision model
-
-LLM-driven design suggestions
+- テキストベースのDSLフロントエンド
+- 3Dジオメトリ（STEP）
+- FEM連携
+- マルチパートアセンブリ
+- 学習ベースの画像認識モデル
+- LLMによる設計提案
